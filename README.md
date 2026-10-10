@@ -5,7 +5,7 @@
 HostelCare AI is an AI-powered hostel support application that helps students report maintenance issues through a conversational interface, track complaint status, and enables hostel staff to manage, resolve, and escalate complaints systematically.
 
 Built using **Python, Streamlit, SQLite, and Google Gemini**, the system combines conversational AI with structured complaint management and role-based access.
-
+[![Architecture diagram](https://gitdiagram.com/diagram-badge.svg)](https://gitdiagram.com/haseebahsan-n/hostelcare-ai-agent?utm_source=readme&utm_medium=badge)
 ## 🚀 Live Application
 
 **Live Demo:** https://hostelcare-ai-agent.streamlit.app/

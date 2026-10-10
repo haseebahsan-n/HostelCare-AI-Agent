@@ -58,7 +58,7 @@ def init_db() -> None:
     try:
         # Create tables and seed data defined in schema.sql.
         conn.executescript(schema_sql)
-                # Add hostel details to existing user accounts.
+        # Add hostel details to existing user accounts.
         user_columns = {
             row["name"]
             for row in conn.execute(

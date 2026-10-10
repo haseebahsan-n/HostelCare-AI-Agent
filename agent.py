@@ -169,12 +169,7 @@ def process_complaint(text: str) -> Dict[str, str]:
 # CONVERSATIONAL AGENT
 # ---------------------------------------------------------
 
-def chat_with_agent(
-    history,
-    user_message,
-    registered_block="",
-    registered_room="",
-):
+def chat_with_agent(history,user_message,registered_block="",registered_room="",):
     """
     Have a natural conversation, collect relevant details,
     and prepare a complaint for the app's confirmation flow.

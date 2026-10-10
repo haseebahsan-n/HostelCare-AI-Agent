@@ -732,12 +732,6 @@ else:
         with tab_student:
             registered_block = st.session_state.get("user_block", "")
             registered_room = st.session_state.get("user_room", "")
-            
-            if registered_block and registered_room:
-                st.info(
-                    f"Registered Hostel: Block {registered_block} "
-                    f"• Room {registered_room}"
-                )
 
             uid = st.session_state["user_id"]
             chat_key = f"hostelcare_chat_{uid}"

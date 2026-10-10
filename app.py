@@ -998,7 +998,10 @@ else:
             with col_search:
                 search_query = st.text_input("🔍 Search tickets", placeholder="Search by ticket ID, keyword, or block...")
             with col_filter:
-                status_filter = st.selectbox("Status Filter",["All", "Open", "Assigned", "In Progress", "Escalated", "Resolved"])
+                status_filter = st.selectbox(
+                    "Status Filter",
+                    ["All", "Open", "Assigned", "In Progress", "Escalated", "Resolved"]
+                )
             with col_cat:
                 cat_list = ["All"] + sorted(df_all["category"].unique().tolist())
                 cat_filter = st.selectbox("Category Filter", cat_list)

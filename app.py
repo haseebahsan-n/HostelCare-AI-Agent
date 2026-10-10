@@ -832,6 +832,15 @@ else:
                             category=parsed["category"],
                             block=(st.session_state.get("user_block") or parsed["block"]),
                             room_number=st.session_state.get("user_room") or None,
+                            floor=(
+                                st.session_state["user_room"][0]
+                                if st.session_state["user_room"].isdigit()
+                                and len(st.session_state["user_room"]) == 3
+                                else st.session_state["user_room"][:2]
+                                if st.session_state["user_room"].isdigit()
+                                and len(st.session_state["user_room"]) == 4
+                                else None
+                            ),
                             priority=parsed["priority"],
                             user_id=uid,
                             status="Open",
@@ -989,7 +998,7 @@ else:
             with col_search:
                 search_query = st.text_input("🔍 Search tickets", placeholder="Search by ticket ID, keyword, or block...")
             with col_filter:
-                status_filter = st.selectbox("Status Filter", ["All", "Open", "Escalated", "Resolved"])
+                status_filter = st.selectbox("Status Filter",["All", "Open", "Assigned", "In Progress", "Escalated", "Resolved"])
             with col_cat:
                 cat_list = ["All"] + sorted(df_all["category"].unique().tolist())
                 cat_filter = st.selectbox("Category Filter", cat_list)

@@ -271,6 +271,7 @@ def add_complaint(
     created_at: str,
     updated_at: str,
     room_number: str | None = None,
+    floor: str | None = None,
     duration: str | None = None,
     impact: str | None = None,
     escalation_level: int = 1,
@@ -296,13 +297,14 @@ def add_complaint(
                 created_at,
                 updated_at,
                 room_number,
+                floor,
                 duration,
                 impact,
                 escalation_level,
                 resolution_notes,
                 resolved_at
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 ticket_id,

@@ -29,6 +29,7 @@ from database import (
     get_action_logs,
     authenticate_user,
     create_user,
+    get_user_profile,
 )
 import database as db
 from routing import manual_escalate, auto_escalate
@@ -231,7 +232,10 @@ if "user_name" not in st.session_state:
     st.session_state["user_name"] = None
 if "role" not in st.session_state:
     st.session_state["role"] = None
-
+if "user_block" not in st.session_state:
+    st.session_state["user_block"] = ""
+if "user_room" not in st.session_state:
+    st.session_state["user_room"] = ""
 # ------------------------------------------------------------
 # Top Header Bar (Pure Streamlit columns to prevent HTML leakage)
 # ------------------------------------------------------------
@@ -267,6 +271,8 @@ with header_right:
                 st.session_state["logged_in"] = False
                 st.session_state["user_id"] = None
                 st.session_state["user_name"] = None
+                st.session_state["user_block"] = ""
+                st.session_state["user_room"] = ""
                 st.session_state["role"] = None
                 st.rerun()
 
@@ -382,11 +388,22 @@ if not st.session_state["logged_in"]:
                             if user:
                                 break
 
+
                         if user:
+                            profile = get_user_profile(user["user_id"])
+
                             st.session_state["logged_in"] = True
                             st.session_state["user_id"] = user["user_id"]
                             st.session_state["user_name"] = user["name"]
                             st.session_state["role"] = user["role"]
+
+                            st.session_state["user_block"] = (
+                                profile.get("block", "") if profile else ""
+                            )
+                            st.session_state["user_room"] = (
+                                profile.get("room_number", "") if profile else ""
+                            )
+
                             st.rerun()
                         else:
                             st.error(
@@ -511,7 +528,7 @@ else:
     #   - "🛠️ Warden & Staff Portal"
     #   - "📊 All Tickets & Analytics"
     
-    if current_role == "Warden":
+    if current_role in ("Warden", "Staff"):
         tab_admin, tab_tracker = st.tabs(["🛠️ Warden & Staff Portal", "📊 All Tickets & Analytics"])
         tab_student = None
     else:
@@ -523,6 +540,14 @@ else:
     # ============================================================
     if tab_student is not None:
         with tab_student:
+            registered_block = st.session_state.get("user_block", "")
+            registered_room = st.session_state.get("user_room", "")
+            
+            if registered_block and registered_room:
+                st.info(
+                    f"Registered Hostel: Block {registered_block} "
+                    f"• Room {registered_room}"
+                )
             st.markdown(
                 '<div class="gemini-hero-title">How can I help you today?</div>',
                 unsafe_allow_html=True,
@@ -603,7 +628,8 @@ else:
                             ticket_id=ticket_id,
                             description=parsed["summary"],
                             category=parsed["category"],
-                            block=parsed["block"],
+                            block=(st.session_state.get("user_block") or parsed["block"]),
+                            room_number=st.session_state.get("user_room") or None,
                             priority=parsed["priority"],
                             user_id=uid,
                             status="Open",
@@ -620,18 +646,21 @@ else:
                             timestamp=now,
                         )
 
+                        
                         history.append({
                             "role": "assistant",
                             "content": (
                                 f"Your complaint has been submitted! "
                                 f"**Ticket ID:** #{ticket_id}\n\n"
                                 f"- Category: {parsed['category']}\n"
-                                f"- Block: {parsed['block']}\n"
+                                f"- Block: {st.session_state.get('user_block') or parsed['block']}\n"
+                                f"- Room: {st.session_state.get('user_room') or 'Not registered'}\n"
                                 f"- Priority: {parsed['priority']}\n"
                                 f"- Assigned to: {parsed['assigned_role']}\n\n"
                                 "You can track your ticket in the Track Tickets tab."
                             ),
                         })
+
 
                     st.session_state[pending_key] = None
                     st.session_state[confirm_key] = False

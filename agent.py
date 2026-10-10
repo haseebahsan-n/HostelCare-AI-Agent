@@ -461,7 +461,7 @@ FULL CONVERSATION:
     # FALLBACK: TYPO-TOLERANT CONVERSATION + CLEAN SUMMARY
     # -----------------------------------------------------
 
-       user_text = " ".join(
+    user_text = " ".join(
         str(m.get("content", ""))
         for m in messages
         if m.get("role") == "user"

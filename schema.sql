@@ -1,4 +1,4 @@
-```sql
+
 -- schema.sql – SQLite schema for HostelCare AI
 
 PRAGMA foreign_keys = ON;
@@ -99,4 +99,4 @@ CROSS JOIN (
 
 -- Demo user accounts are seeded by database.py.
 -- Keep account details in one place to avoid conflicting demo users.
-```
+

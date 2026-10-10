@@ -953,16 +953,12 @@ else:
     # TAB: Ticket Tracker & Analytics
     # ============================================================
     with tab_tracker:
-        tickets = get_all_complaints()
-    
-        # Students can only see their own complaints.
-        # Warden and Staff can see all complaints.
         if current_role == "Student":
-            current_user_id = st.session_state["user_id"]
-            tickets = [
-                ticket for ticket in tickets
-                if str(ticket.get("user_id", "")) == str(current_user_id)
-            ]
+            tickets = get_complaints_by_user(
+                st.session_state["user_id"]
+            )
+        else:
+            tickets = get_all_complaints()
 
         
         if not tickets:

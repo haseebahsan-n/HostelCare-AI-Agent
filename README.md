@@ -13,9 +13,11 @@ Built using **Python, Streamlit, SQLite, and Google Gemini**, the system combine
 
 **GitHub Repository:** https://github.com/haseebahsan-n/HostelCare-AI-Agent
 
+
 ## 🎯 Project Objective
 
 HostelCare AI aims to make hostel complaint handling more accessible, transparent, and organized by combining conversational AI, automated routing, ticket tracking, and structured escalation in one application.
+
 
 ## ✨ Features
 

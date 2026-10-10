@@ -279,6 +279,68 @@ st.markdown(
         padding-top: 1rem;
         padding-bottom: 6rem;
     }
+    
+    /* ChatGPT-style fixed chat input */
+    div[data-testid="stChatInput"] {
+        position: fixed !important;
+        bottom: 16px !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        width: min(800px, calc(100vw - 40px)) !important;
+        z-index: 999 !important;
+        background: #1e1f20 !important;
+        border-radius: 24px !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45) !important;
+    }
+    
+    /* Leave room so messages aren't hidden behind the input */
+    section.main > div.block-container {
+        padding-bottom: 110px !important;
+    }
+    
+    /* Keep chat input text readable */
+    div[data-testid="stChatInput"] textarea {
+        color: #e3e3e3 !important;
+        background: #1e1f20 !important;
+    }
+    
+/* Centered first-visit welcome */
+.welcome-screen {
+    position: fixed;
+    top: 42%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(800px, calc(100vw - 32px));
+    text-align: center;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.welcome-title {
+    font-size: clamp(1.8rem, 4vw, 2.7rem);
+    font-weight: 400;
+    color: #e3e3e3;
+    letter-spacing: -0.5px;
+    margin-bottom: 12px;
+}
+
+.welcome-subtitle {
+    font-size: 0.95rem;
+    color: #9aa0a6;
+}
+
+/* On the initial screen, center the single chat input */
+body:has(.welcome-screen) [data-testid="stChatInput"] {
+    top: 58% !important;
+    bottom: auto !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: min(800px, calc(100vw - 32px)) !important;
+}
+
+/* Once a conversation begins, the existing fixed-bottom
+   chat-input CSS takes over. */
+
 
     </style>
     """,
@@ -665,15 +727,6 @@ else:
                     f"Registered Hostel: Block {registered_block} "
                     f"• Room {registered_room}"
                 )
-            st.markdown(
-                '<div class="gemini-hero-title">How can I help you today?</div>',
-                unsafe_allow_html=True,
-            )
-            st.caption(
-                "Describe your hostel issue naturally. I'll help you "
-                "understand it, prepare a complaint, and submit it "
-                "after your confirmation."
-            )
 
             uid = st.session_state["user_id"]
             chat_key = f"hostelcare_chat_{uid}"
@@ -688,29 +741,38 @@ else:
                 st.session_state[confirm_key] = False
 
             history = st.session_state[chat_key]
-
-            if st.button("＋ New conversation"):
-                history.clear()
-                st.session_state[pending_key] = None
-                st.session_state[confirm_key] = False
-                st.rerun()
-
-            
-            # Display chat history like ChatGPT
-            
-            # Display chat history with left/right alignment
+            # Show the centered welcome screen only before the first message
             if not history:
-                left_col, right_col = st.columns([5, 2])
-                with left_col:
-                    with st.container(
-                        key="assistant_message_welcome"
-                    ):
-                        st.markdown(
-                            "✦ **HostelCare AI**\n\n"
-                            "Hi! I'm HostelCare AI. What's happening "
-                            "in your hostel today?"
-                        )
+                st.markdown(
+                    """
+                    <div class="welcome-screen">
+                        <div class="welcome-title">
+                            How can I help you today?
+                        </div>
+                        <div class="welcome-subtitle">
+                            Your hostel assistant for complaints and support.
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+
+
+            # Conversation toolbar: New conversation on the right
+            _, toolbar_right = st.columns([5, 1])
             
+            with toolbar_right:
+                if st.button(
+                    "＋ New chat",
+                    key=f"new_chat_{uid}",
+                    use_container_width=True,
+                ):
+                    history.clear()
+                    st.session_state[pending_key] = None
+                    st.session_state[confirm_key] = False
+                    st.rerun()
+            
+            # Display chat history like ChatGPT            
             for i, message in enumerate(history):
                 if message["role"] == "user":
                     left_col, right_col = st.columns([2, 5])
@@ -818,13 +880,47 @@ else:
                 else:
                     # Continue the conversation, even when confirmation
                     # was previously requested. The user may have more details.
+                    
                     with st.spinner("HostelCare AI is thinking..."):
+                        registered_block = st.session_state.get("user_block", "").strip()
+                        registered_room = st.session_state.get("user_room", "").strip()
+                    
+                        # Infer the floor from the registered room number.
+                        inferred_floor = ""
+                        if registered_room.isdigit():
+                            if len(registered_room) == 3:
+                                inferred_floor = registered_room[0]
+                            elif len(registered_room) == 4:
+                                inferred_floor = registered_room[:2]
+                    
+                        # Give the agent trusted profile context without asking
+                        # the student to repeat their registered location.
+                        contextual_message = user_message
+                    
+                        if registered_block and registered_room:
+                            contextual_message = (
+                                "SYSTEM CONTEXT — use these registered student details "
+                                "for this complaint. Do not ask the student for their "
+                                "block, room number, or floor because these are already "
+                                "registered. Do not change these details based on guesses. "
+                                f"Block: {registered_block}. "
+                                f"Room: {registered_room}. "
+                                f"Inferred floor: {inferred_floor or 'unknown'}. "
+                                "Use this location when preparing the complaint. "
+                                "Continue asking only for information needed to understand "
+                                "the actual issue.\n\n"
+                                f"Student's message: {user_message}"
+                            )
+                    
                         result = chat_with_agent(
                             history[:-1],
-                            user_message,
+                            contextual_message,
                         )
 
                     if result["ready_to_submit"]:
+                        # Always use the student's registered location.
+                        if registered_block:
+                            result["block"] = registered_block
                         st.session_state[pending_key] = result
                         st.session_state[confirm_key] = True
 
@@ -832,7 +928,9 @@ else:
                             f"{result['reply']}\n\n"
                             f"**Complaint summary:** {result['summary']}\n\n"
                             f"- Category: {result['category']}\n"
-                            f"- Block: {result['block']}\n"
+                            f"- Block: {registered_block or result.get('block', 'Unknown')}\n"
+                            f"- Room: {registered_room or 'Not registered'}\n"
+                            f"- Floor: {inferred_floor or 'Unknown'}\n\n"
                             f"- Priority: {result['priority']}\n"
                             f"- Assigned to: {result['assigned_role']}\n\n"
                             "Would you like me to submit this complaint? "
@@ -855,6 +953,16 @@ else:
     # ============================================================
     with tab_tracker:
         tickets = get_all_complaints()
+    
+        # Students can only see their own complaints.
+        # Warden and Staff can see all complaints.
+        if current_role == "Student":
+            current_user_id = st.session_state["user_id"]
+            tickets = [
+                ticket for ticket in tickets
+                if str(ticket.get("user_id", "")) == str(current_user_id)
+            ]
+
         
         if not tickets:
             st.info("No tickets recorded in the database yet.")
@@ -897,12 +1005,27 @@ else:
                 filtered_df = filtered_df[filtered_df["category"] == cat_filter]
             if search_query.strip():
                 q = search_query.strip().lower()
-                filtered_df = filtered_df[
-                    filtered_df["ticket_id"].str.lower().str.contains(q)
-                    | filtered_df["description"].str.lower().str.contains(q)
-                    | filtered_df["block"].str.lower().str.contains(q)
-                    | filtered_df["assigned_role"].str.lower().str.contains(q)
+            
+                searchable_columns = [
+                    "ticket_id",
+                    "description",
+                    "block",
+                    "assigned_role",
                 ]
+            
+                search_mask = pd.Series(False, index=filtered_df.index)
+            
+                for column in searchable_columns:
+                    if column in filtered_df.columns:
+                        search_mask |= (
+                            filtered_df[column]
+                            .fillna("")
+                            .astype(str)
+                            .str.lower()
+                            .str.contains(q, regex=False)
+                        )
+            
+                filtered_df = filtered_df[search_mask]
 
             # Display Data Table
             st.subheader(f"📋 Records ({len(filtered_df)} matches)")

@@ -23,6 +23,7 @@ from database import (
     init_db,
     add_complaint,
     get_all_complaints,
+    get_complaints_by_user,
     update_ticket_status,
     get_complaint,
     log_action,

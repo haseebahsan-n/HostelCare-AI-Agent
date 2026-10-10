@@ -892,76 +892,52 @@ else:
                     st.session_state[confirm_key] = False
 
                 else:
-                    # Continue the conversation, even when confirmation
-                    # was previously requested. The user may have more details.
-                    
+                    # Continue the conversation or collect complaint details.
+                    registered_block = str(
+                        st.session_state.get("user_block", "") or ""
+                    ).strip()
+                    registered_room = str(
+                        st.session_state.get("user_room", "") or ""
+                    ).strip()
+    
                     with st.spinner("HostelCare AI is thinking..."):
-                        registered_block = st.session_state.get("user_block", "").strip()
-                        registered_room = st.session_state.get("user_room", "").strip()
-                    
-                        # Infer the floor from the registered room number.
-                        inferred_floor = ""
-                        if registered_room.isdigit():
-                            if len(registered_room) == 3:
-                                inferred_floor = registered_room[0]
-                            elif len(registered_room) == 4:
-                                inferred_floor = registered_room[:2]
-                    
-                        # Give the agent trusted profile context without asking
-                        # the student to repeat their registered location.
-                        contextual_message = user_message
-                    
-                        if registered_block and registered_room:
-                            contextual_message = (
-                                "SYSTEM CONTEXT — use these registered student details "
-                                "for this complaint. Do not ask the student for their "
-                                "block, room number, or floor because these are already "
-                                "registered. Do not change these details based on guesses. "
-                                f"Block: {registered_block}. "
-                                f"Room: {registered_room}. "
-                                f"Inferred floor: {inferred_floor or 'unknown'}. "
-                                "Use this location when preparing the complaint. "
-                                "Continue asking only for information needed to understand "
-                                "the actual issue.\n\n"
-                                f"Student's message: {user_message}"
-                            )
-                    
                         result = chat_with_agent(
                             history[:-1],
-                            contextual_message,
+                            user_message,
+                            registered_block=registered_block,
+                            registered_room=registered_room,
                         )
-
+    
                     if result["ready_to_submit"]:
-                        # Always use the student's registered location.
+                        # Always use the verified registered block.
                         if registered_block:
                             result["block"] = registered_block
+    
                         st.session_state[pending_key] = result
                         st.session_state[confirm_key] = True
-
+    
                         reply = (
                             f"{result['reply']}\n\n"
                             f"**Complaint summary:** {result['summary']}\n\n"
                             f"- Category: {result['category']}\n"
                             f"- Block: {registered_block or result.get('block', 'Unknown')}\n"
-                            f"- Room: {registered_room or 'Not registered'}\n"
-                            f"- Floor: {inferred_floor or 'Unknown'}\n\n"
+                            f"- Room: {registered_room or 'Not registered'}\n\n"
                             f"- Priority: {result['priority']}\n"
                             f"- Assigned to: {result['assigned_role']}\n\n"
                             "Would you like me to submit this complaint? "
                             "Reply **yes** or **no**."
                         )
                     else:
-                        # The agent still needs information; do not submit.
                         st.session_state[pending_key] = None
                         st.session_state[confirm_key] = False
                         reply = result["reply"]
-
+    
                     history.append({
                         "role": "assistant",
                         "content": reply,
                     })
+    
                 st.rerun()
-
     # ============================================================
     # TAB: Ticket Tracker & Analytics
     # ============================================================

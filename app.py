@@ -215,6 +215,47 @@ st.markdown(
         color: #aecbfa;
         text-decoration: underline;
     }
+    
+    /* Chat conversation layout */
+    div[class*="st-key-user_message"] {
+        background: #303134 !important;
+        border: 1px solid #3c4043 !important;
+        border-radius: 22px !important;
+        padding: 10px 18px !important;
+        margin: 8px 0 12px 0 !important;
+    }
+    
+    div[class*="st-key-assistant_message"] {
+        background: #1e1f20 !important;
+        border: 1px solid #303134 !important;
+        border-radius: 22px !important;
+        padding: 10px 18px !important;
+        margin: 8px 0 12px 0 !important;
+    }
+    
+    div[class*="st-key-user_message"] p,
+    div[class*="st-key-assistant_message"] p {
+        color: #e3e3e3 !important;
+        line-height: 1.65 !important;
+    }
+    
+    /* Keep the conversation readable */
+    [data-testid="stChatInput"] {
+        background: #1e1f20 !important;
+    }
+    
+    [data-testid="stChatInput"] textarea {
+        background: #1e1f20 !important;
+        color: #e3e3e3 !important;
+    }
+    
+    /* Reduce unnecessary page spacing */
+    .block-container {
+        max-width: 1100px;
+        padding-top: 1rem;
+        padding-bottom: 6rem;
+    }
+
     </style>
     """,
     unsafe_allow_html=True,
@@ -239,14 +280,20 @@ if "user_room" not in st.session_state:
 # ------------------------------------------------------------
 # Top Header Bar (Pure Streamlit columns to prevent HTML leakage)
 # ------------------------------------------------------------
-header_left, header_right = st.columns([4, 2])
+
+header_left, header_right = st.columns([4, 3])
 
 with header_left:
     st.markdown(
         """
-        <div style="display:flex; align-items:center; gap:8px; padding-top:4px;">
-            <span class="gemini-sparkle">✦</span>
-            <span style="font-size:1.4rem; font-weight:600; color:#e3e3e3; letter-spacing:-0.3px;">HostelCare AI</span>
+        <div style="display:flex; align-items:center; gap:10px;
+                    padding-top:5px;">
+            <span class="gemini-sparkle"
+                  style="font-size:1.6rem;">✦</span>
+            <span style="font-size:1.4rem; font-weight:600;
+                         color:#e3e3e3; letter-spacing:-0.3px;">
+                HostelCare AI
+            </span>
         </div>
         """,
         unsafe_allow_html=True,
@@ -254,30 +301,62 @@ with header_left:
 
 with header_right:
     if st.session_state["logged_in"]:
-        r_col1, r_col2 = st.columns([3, 2])
-        role_color = "#8ab4f8" if st.session_state["role"] == "Student" else "#f28b82"
+        r_col1, r_col2 = st.columns([3, 1.5])
+
+        role = st.session_state.get("role", "")
+        role_color = "#8ab4f8" if role == "Student" else "#f28b82"
+
+        block = st.session_state.get("user_block", "")
+        room = st.session_state.get("user_room", "")
+
+        if role == "Student" and block and room:
+            user_details = f"Block {block} · Room {room}"
+        else:
+            user_details = role
+
         with r_col1:
             st.markdown(
                 f"""
-                <div style="text-align:right; padding-top:6px;">
-                    <span style="font-size:0.88rem; color:#e3e3e3; font-weight:500;">{st.session_state['user_name']}</span>
-                    <span style="background:rgba(255,255,255,0.08); color:{role_color}; padding:2px 8px; border-radius:10px; font-size:0.75rem; font-weight:600; margin-left:6px;">{st.session_state['role']}</span>
+                <div style="text-align:right; padding-top:2px;">
+                    <div style="font-size:0.9rem; color:#e3e3e3;
+                                font-weight:500;">
+                        {st.session_state['user_name']}
+                    </div>
+                    <div style="font-size:0.75rem; color:#9aa0a6;
+                                margin-top:3px;">
+                        {user_details}
+                        <span style="color:{role_color}; margin-left:5px;">
+                            ●
+                        </span>
+                    </div>
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
+
         with r_col2:
-            if st.button("🚪 Sign Out", key="sign_out_btn", use_container_width=True):
-                st.session_state["logged_in"] = False
-                st.session_state["user_id"] = None
-                st.session_state["user_name"] = None
-                st.session_state["user_block"] = ""
-                st.session_state["user_room"] = ""
-                st.session_state["role"] = None
+            if st.button(
+                "Sign out",
+                key="sign_out_btn",
+                use_container_width=True,
+            ):
+                for key, value in {
+                    "logged_in": False,
+                    "user_id": None,
+                    "user_name": None,
+                    "user_block": "",
+                    "user_room": "",
+                    "role": None,
+                }.items():
+                    st.session_state[key] = value
+
                 st.rerun()
 
-st.markdown("<div style='border-bottom: 1px solid #282a2c; margin-bottom: 24px; margin-top: 8px;'></div>", unsafe_allow_html=True)
-
+st.markdown(
+    "<div style='border-bottom:1px solid #282a2c;"
+    "margin-bottom:24px; margin-top:12px;'></div>",
+    unsafe_allow_html=True,
+)
 
 
 # ============================================================
@@ -594,17 +673,39 @@ else:
 
             
             # Display chat history like ChatGPT
-            if not history:
-                with st.chat_message("assistant", avatar="🤖"):
-                    st.markdown("Hi! I'm HostelCare AI. What's happening in your hostel today?")
             
-            for message in history:
+            # Display chat history with left/right alignment
+            if not history:
+                left_col, right_col = st.columns([5, 2])
+                with left_col:
+                    with st.container(
+                        key="assistant_message_welcome"
+                    ):
+                        st.markdown(
+                            "✦ **HostelCare AI**\n\n"
+                            "Hi! I'm HostelCare AI. What's happening "
+                            "in your hostel today?"
+                        )
+            
+            for i, message in enumerate(history):
                 if message["role"] == "user":
-                    with st.chat_message("user", avatar="🧑‍🎓"):
-                        st.markdown(message["content"])
+                    left_col, right_col = st.columns([2, 5])
+                    with right_col:
+                        with st.container(
+                            key=f"user_message_{i}"
+                        ):
+                            st.markdown(message["content"])
                 else:
-                    with st.chat_message("assistant", avatar="🤖"):
-                        st.markdown(message["content"])
+                    left_col, right_col = st.columns([5, 2])
+                    with left_col:
+                        with st.container(
+                            key=f"assistant_message_{i}"
+                        ):
+                            st.markdown(
+                                "✦ **HostelCare AI**\n\n"
+                                + message["content"]
+                            )
+
 
 
             user_message = st.chat_input(

@@ -89,7 +89,6 @@ def init_db() -> None:
             ("53135", "Warden Shanmugam", "hostel123", "Warden", "", "", ""),
             ("TECH01", "Technician Kumar", "hostel123", "Staff", "", "", ""),
         ]
-
         for user in demo_users:
             conn.execute(
                 """
@@ -98,6 +97,26 @@ def init_db() -> None:
                 VALUES (?, ?, ?, ?, ?, ?, ?)
                 """,
                 user,
+            )
+            # Fill missing registered hostel details without overwriting
+            # details that have already been saved for the account.
+            conn.execute(
+                """
+                UPDATE users
+                SET
+                    block = CASE
+                        WHEN block IS NULL OR TRIM(block) = ''
+                        THEN ?
+                        ELSE block
+                    END,
+                    room_number = CASE
+                        WHEN room_number IS NULL OR TRIM(room_number) = ''
+                        THEN ?
+                        ELSE room_number
+                    END
+                WHERE user_id = ?
+                """,
+                (user[4], user[5], user[0]),
             )
 
         # Check existing complaint columns.
@@ -111,6 +130,7 @@ def init_db() -> None:
         # Add new fields without deleting existing complaints.
         new_columns = {
             "room_number": "TEXT",
+            "floor": "TEXT",
             "duration": "TEXT",
             "impact": "TEXT",
             "escalation_level": "INTEGER NOT NULL DEFAULT 1",

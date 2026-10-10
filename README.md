@@ -1,4 +1,4 @@
-# 🏠 HostelCare AI vit
+# 🏠 HostelCare AI
 
 ### Intelligent Hostel Complaint Management & Escalation System
 

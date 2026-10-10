@@ -58,6 +58,47 @@ def init_db() -> None:
     try:
         # Create tables and seed data defined in schema.sql.
         conn.executescript(schema_sql)
+                # Add hostel details to existing user accounts.
+        user_columns = {
+            row["name"]
+            for row in conn.execute(
+                "PRAGMA table_info(users)"
+            ).fetchall()
+        }
+
+        new_user_columns = {
+            "block": "TEXT",
+            "room_number": "TEXT",
+            "mobile": "TEXT",
+        }
+
+        for column, column_type in new_user_columns.items():
+            if column not in user_columns:
+                conn.execute(
+                    f"ALTER TABLE users ADD COLUMN "
+                    f"{column} {column_type}"
+                )
+
+        # Pre-register demo accounts without overwriting existing users.
+        demo_users = [
+            ("23BME1191", "Haseeb", "hostel123", "Student", "A", "828", ""),
+            ("23BME1110", "Sam grason", "hostel123", "Student", "E", "1228", ""),
+            ("23BME1120", "Nigalyaa", "hostel123", "Student", "B", "416", ""),
+            ("23BEE1144", "Balaji", "hostel123", "Student", "A", "540", ""),
+            ("21BME1190", "Raja", "hostel123", "Student", "F", "1407", ""),
+            ("53135", "Warden Shanmugam", "hostel123", "Warden", "", "", ""),
+            ("TECH01", "Technician Kumar", "hostel123", "Staff", "", "", ""),
+        ]
+
+        for user in demo_users:
+            conn.execute(
+                """
+                INSERT OR IGNORE INTO users
+                    (user_id, name, password, role, block, room_number, mobile)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                user,
+            )
 
         # Check existing complaint columns.
         existing_columns = {
@@ -139,6 +180,25 @@ def authenticate_user(
     finally:
         conn.close()
 
+def get_user_profile(user_id: str) -> Dict[str, Any] | None:
+    """Return a registered user's profile."""
+
+    conn = _get_connection()
+
+    try:
+        row = conn.execute(
+            """
+            SELECT user_id, name, role, block, room_number, mobile
+            FROM users
+            WHERE user_id = ?
+            """,
+            (user_id.strip(),),
+        ).fetchone()
+
+        return dict(row) if row else None
+
+    finally:
+        conn.close()
 
 def create_user(
     user_id: str,

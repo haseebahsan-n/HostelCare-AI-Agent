@@ -52,6 +52,30 @@ st.markdown(
         font-family: 'Google Sans', 'Roboto', sans-serif !important;
         color: #e3e3e3;
     }
+    
+    /* Hide Streamlit's default top toolbar and header */
+    [data-testid="stHeader"] {
+        display: none !important;
+        height: 0 !important;
+    }
+    
+    [data-testid="stToolbar"] {
+        display: none !important;
+    }
+    
+    #MainMenu {
+        visibility: hidden;
+    }
+    
+    footer {
+        visibility: hidden;
+    }
+    
+    /* Prevent the app content from being pushed down */
+    .block-container {
+        padding-top: 1rem !important;
+    }
+
 
     /* Ambient Gemini Radial Blue/Violet Glow */
     .stApp::before {

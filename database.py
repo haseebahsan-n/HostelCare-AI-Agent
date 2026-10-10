@@ -318,6 +318,7 @@ def add_complaint(
                 created_at,
                 updated_at,
                 room_number,
+                floor,
                 duration,
                 impact,
                 escalation_level,

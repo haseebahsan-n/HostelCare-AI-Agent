@@ -693,6 +693,16 @@ if not st.session_state["logged_in"]:
                     st.session_state["show_registration"] = False
                     st.rerun()
 
+            st.markdown(
+                """
+                <div style="text-align:center; color:#9aa0a6;
+                            font-size:12px; padding:24px 0;">
+                    © 2026 HostelCare AI • Built with Streamlit, SQLite, and Google Gemini.
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
 # ============================================================
 # MAIN APPLICATION INTERFACE (When user is logged in)
 # ============================================================
@@ -1156,7 +1166,6 @@ else:
                     else:
                         st.info("No audit logs found for this ticket.")
 
-st.caption("© 2026 HostelCare AI • Built with Streamlit, SQLite, and Google Gemini.")
 
 
 

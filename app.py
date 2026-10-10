@@ -413,14 +413,28 @@ if not st.session_state["logged_in"]:
 
             with st.expander("ℹ️ Default Demo Accounts"):
                 st.markdown(
-                    """
-                    **Student account**
-                    - Unique ID: `STU101`
-                    - Password: `student123`
+                                        """
+                    **Student Accounts**
 
-                    **Warden account**
-                    - Unique ID: `WARDEN01`
-                    - Password: `admin123`
+                    | Name | Unique ID | Password | Hostel | Room |
+                    |---|---|---|---|---|
+                    | Haseeb | `23BME1191` | `hostel123` | Block A | 828 |
+                    | Sam grason | `23BME1110` | `hostel123` | Block E | 1228 |
+                    | Nigalyaa | `23BME1120` | `hostel123` | Block B | 416 |
+                    | Balaji | `23BEE1144` | `hostel123` | Block A | 540 |
+                    | Raja | `21BME1190` | `hostel123` | Block F | 1407 |
+
+                    **Warden Account**
+
+                    - Name: Shanmugam
+                    - Unique ID: `53135`
+                    - Password: `hostel123`
+
+                    **Technician Account**
+
+                    - Name: Kumar
+                    - Unique ID: `TECH01`
+                    - Password: `hostel123`
                     """
                 )
 

@@ -719,10 +719,10 @@ else:
     #   - "📊 All Tickets & Analytics"
     
     if current_role in ("Warden", "Staff"):
-        tab_admin, tab_tracker = st.tabs(["🛠️ Warden & Staff Portal", "📊 All Tickets & Analytics"])
+        tab_admin, tab_tracker = st.tabs(["Warden & Staff Portal", "All Tickets & Analytics"])
         tab_student = None
     else:
-        tab_student, tab_tracker = st.tabs(["✨ Ask / Report Issue", "📋 Track Tickets"])
+        tab_student, tab_tracker = st.tabs(["Ask / Report Issue", "Track Tickets"])
         tab_admin = None
     
     # ============================================================
@@ -1041,7 +1041,7 @@ else:
                 filtered_df = filtered_df[search_mask]
 
             # Display Data Table
-            st.subheader(f"📋 Records ({len(filtered_df)} matches)")
+            st.subheader(f" Records ({len(filtered_df)} matches)")
             if not filtered_df.empty:
                 display_df = filtered_df.copy()
                 display_df["created_at"] = display_df["created_at"].apply(lambda x: str(x)[:19].replace("T", " "))
@@ -1060,7 +1060,7 @@ else:
 
             # Analytics Charts Section (Only on analytics view)
             st.markdown("---")
-            st.subheader("📈 Insights & Trends")
+            st.subheader("📈Insights & Trends")
             chart_col1, chart_col2 = st.columns(2)
             
             with chart_col1:
@@ -1080,7 +1080,7 @@ else:
     # ============================================================
     if tab_admin is not None:
         with tab_admin:
-            st.subheader("🛠️ Hostel Warden Complaint & Escalation Dashboard")
+            st.subheader(" Hostel Warden Complaint & Escalation Dashboard")
             tickets = get_all_complaints()
             
             if not tickets:
@@ -1151,7 +1151,7 @@ else:
                                     st.info("Ticket is already at the highest authority level (Director).")
 
                     st.markdown("---")
-                    st.subheader("📜 Audit Action Log")
+                    st.subheader("Audit Action Log")
                     logs = get_action_logs(selected_id)
                     if logs:
                         logs_df = pd.DataFrame(logs)
